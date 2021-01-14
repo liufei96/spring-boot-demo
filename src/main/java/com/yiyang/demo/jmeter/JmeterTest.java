@@ -1,5 +1,6 @@
 package com.yiyang.demo.jmeter;
 
+import lombok.SneakyThrows;
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.config.CSVDataSet;
 import org.apache.jmeter.config.CSVDataSetBeanInfo;
@@ -31,6 +32,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class JmeterTest {
@@ -47,7 +49,21 @@ public class JmeterTest {
     public static final String jmxPath = "E:\\jmeter\\test.jmx";
 
     public static void main(String[] args) {
-        run();
+        //run();
+        String jemterHome = "E:\\apache-jmeter-5.4";
+        JMeterUtils.setJMeterHome(jemterHome);
+        JMeterUtils.loadJMeterProperties(JMeterUtils.getJMeterBinDir() + "\\jmeter.properties");
+        for (int i = 0; i < 10; i++) {
+            new Thread(() -> {
+                String csvPath = "e:\\jmeter\\result-"+ UUID.randomUUID().toString() + ".csv";
+                String command = JMeterUtils.getJMeterBinDir() + "\\JMeterPluginsCMD.bat --generate-csv " + csvPath + " --input-jtl e:\\jmeter\\result.jtl  --plugin-type AggregateReport ";
+                try {
+                    Runtime.getRuntime().exec(command);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        }
     }
     private static void run() {
 
@@ -60,6 +76,8 @@ public class JmeterTest {
         JMeterUtils.setJMeterHome(jemterHome);
         JMeterUtils.loadJMeterProperties(JMeterUtils.getJMeterBinDir() + "\\jmeter.properties");
         //JMeterUtils.initLocale();
+
+        String reportCommandFormat = JMeterUtils.getJMeterBinDir() + "\\JMeterPluginsCMD.bat --generate-csv %s --input-jtl %s  --plugin-type AggregateReport";
 
         // 获取TestPlan
         TestPlan testPlan = getTestPlan();
