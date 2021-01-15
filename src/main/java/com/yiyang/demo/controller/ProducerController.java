@@ -1,13 +1,10 @@
 package com.yiyang.demo.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.fasterxml.jackson.databind.util.JSONPObject;
+import com.yiyang.demo.model.RecordTrafficDO;
 import com.yiyang.demo.model.User;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.UUID;
@@ -34,6 +31,16 @@ public class ProducerController {
             user.setRemark("这是备注：" + UUID.randomUUID().toString());
             String userStr = JSONObject.toJSONString(user);
             kafkaTemplate.send("yiyang", userStr); //使用kafka模板发送信息
+        }
+        return "success";
+    }
+
+    @PostMapping("/send/record/{count}")
+    public String sendRecordTraffic(@PathVariable Integer count, @RequestBody RecordTrafficDO recordTrafficDO) {
+        for (int i = 0; i < count ; i++) {
+            recordTrafficDO.setName(UUID.randomUUID().toString());
+            String traffic = JSONObject.toJSONString(recordTrafficDO);
+            kafkaTemplate.send("yiyang", traffic); //使用kafka模板发送信息
         }
         return "success";
     }

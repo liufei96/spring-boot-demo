@@ -1,0 +1,22 @@
+package com.yiyang.demo.service.impl;
+
+import com.yiyang.demo.mapper.RecordTrafficMapper;
+import com.yiyang.demo.model.RecordTrafficDO;
+import com.yiyang.demo.service.RecordTrafficService;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+
+@Service("rds")
+@Primary
+public class RecordTrafficServiceRDSImpl implements RecordTrafficService {
+
+    @Resource
+    private RecordTrafficMapper recordTrafficMapper;
+
+    @Override
+    public void save(RecordTrafficDO recordTrafficDO) {
+        recordTrafficMapper.insert(recordTrafficDO);
+    }
+}

@@ -89,11 +89,13 @@ public class HBaseUtils {
     public void save(String tableName, String rowKey, Map<String, Map<String, String>> data) {
         try {
             Table table = connection.getTable(TableName.valueOf(tableName));
-            Put put = new Put(Bytes.toBytes(rowKey));
+            List<Put> puts = new ArrayList<>();
             data.entrySet().forEach(e -> e.getValue().entrySet().forEach(ee -> {
+                Put put = new Put(Bytes.toBytes(rowKey));
                 put.addColumn(Bytes.toBytes(e.getKey()), Bytes.toBytes(ee.getKey()), Bytes.toBytes(ee.getValue()));
+                puts.add(put);
             }));
-            table.put(put);
+            table.put(puts);
         } catch (Exception e) {
             logger.error("HBase数据库向表put数据失败", e);
         }
@@ -104,16 +106,16 @@ public class HBaseUtils {
      *
      * @param tableName     表名
      * @param row           行名
-     * @param columnFamilys 列族名
+     * @param columnFamily 列族名
      * @param columns       列名（数组）
      * @param values        值（数组）（且需要和列一一对应）
      */
-    public void insertRecords(String tableName, String row, String columnFamilys, String[] columns, String[] values) throws IOException {
+    public void insertRecords(String tableName, String row, String columnFamily, String[] columns, String[] values) throws IOException {
         TableName name = TableName.valueOf(tableName);
         Table table = connection.getTable(name);
         Put put = new Put(Bytes.toBytes(row));
         for (int i = 0; i < columns.length; i++) {
-            put.addColumn(Bytes.toBytes(columnFamilys), Bytes.toBytes(columns[i]), Bytes.toBytes(values[i]));
+            put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(columns[i]), Bytes.toBytes(values[i]));
             table.put(put);
         }
     }
