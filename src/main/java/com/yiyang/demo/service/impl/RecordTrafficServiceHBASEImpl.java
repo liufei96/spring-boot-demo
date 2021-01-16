@@ -48,6 +48,7 @@ public class RecordTrafficServiceHBASEImpl implements RecordTrafficService {
         try {
             hBaseUtils.insertRecords(tableName, rowId, columnFamily[0], smallField, smallValues.toArray(new String[0]));
             hBaseUtils.insertRecords(tableName, rowId, columnFamily[1], largeField, largeValues.toArray(new String[0]));
+            logger.info("hbase添加数据成功，rowId：{}", rowId);
         } catch (IOException e) {
             logger.error("hbase添加数据失败： {}", e.getMessage());
         }
