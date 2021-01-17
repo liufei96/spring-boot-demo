@@ -1,20 +1,21 @@
 package com.yiyang.demo.utils;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.NamespaceDescriptor;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -87,8 +88,7 @@ public class HBaseUtils {
      * @param data      Map ：data.put("cf1", dataMap);
      */
     public void save(String tableName, String rowKey, Map<String, Map<String, String>> data) {
-        try {
-            Table table = connection.getTable(TableName.valueOf(tableName));
+        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
             List<Put> puts = new ArrayList<>();
             data.entrySet().forEach(e -> e.getValue().entrySet().forEach(ee -> {
                 Put put = new Put(Bytes.toBytes(rowKey));
@@ -104,19 +104,23 @@ public class HBaseUtils {
     /**
      * 插入记录（单行单列族-多列多值）
      *
-     * @param tableName     表名
-     * @param row           行名
+     * @param tableName    表名
+     * @param row          行名
      * @param columnFamily 列族名
-     * @param columns       列名（数组）
-     * @param values        值（数组）（且需要和列一一对应）
+     * @param columns      列名（数组）
+     * @param values       值（数组）（且需要和列一一对应）
      */
     public void insertRecords(String tableName, String row, String columnFamily, String[] columns, String[] values) throws IOException {
-        TableName name = TableName.valueOf(tableName);
-        Table table = connection.getTable(name);
-        Put put = new Put(Bytes.toBytes(row));
-        for (int i = 0; i < columns.length; i++) {
-            put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(columns[i]), Bytes.toBytes(values[i]));
-            table.put(put);
+        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
+            List<Put> puts = new ArrayList<>();
+            for (int i = 0; i < columns.length; i++) {
+                Put put = new Put(Bytes.toBytes(row));
+                put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(columns[i]), Bytes.toBytes(values[i]));
+                puts.add(put);
+            }
+            table.put(puts);
+        } catch (IOException e) {
+            logger.error("HBase数据库向表put数据失败", e);
         }
     }
 
@@ -184,7 +188,7 @@ public class HBaseUtils {
      * @param tablename
      * @return
      */
-    public List scanAllRecord(String tablename) throws IOException {
+    public List scanAllRecord(String tablename, int size) throws IOException {
         List list = new ArrayList();
         TableName name = TableName.valueOf(tablename);
         Table table = connection.getTable(name);
@@ -192,20 +196,22 @@ public class HBaseUtils {
         ResultScanner scanner = table.getScanner(scan);
         try {
             for (Result result : scanner) {
+                Map<String, String> map = new HashMap<>();
                 for (Cell cell : result.rawCells()) {
-                    String rowKey = Bytes.toString(CellUtil.cloneRow(cell));
-                    String family = Bytes.toString(CellUtil.cloneFamily(cell));
-                    String qualifier = Bytes.toString(CellUtil.cloneQualifier(cell));
-                    String value = Bytes.toString(CellUtil.cloneValue(cell));
-                    list.add(rowKey + "\t" + family + ":" + qualifier + "\t" + value);
+                    if ("small_field".equals(Bytes.toString(CellUtil.cloneFamily(cell)))) {
+                        map.put(Bytes.toString(CellUtil.cloneQualifier(cell)), Bytes.toString(CellUtil.cloneValue(cell)));
+                    }
                 }
+                if (list.size() >= size) {
+                    break;
+                }
+                list.add(map);
             }
         } finally {
             if (scanner != null) {
                 scanner.close();
             }
         }
-
         return list;
     }
 
@@ -266,4 +272,111 @@ public class HBaseUtils {
             new Delete(rowkey.getBytes()).addColumns(Bytes.toBytes(columnFamily), Bytes.toBytes(columns[i]));
         }
     }
+
+
+    /**
+     * 数据查询代码
+     *
+     * @param tableName   表名
+     * @param startRow    起点key
+     * @param stopRow     结束key
+     * @param objKey      筛选id
+     * @param currentPage 当前页
+     * @param pageSize    每页数量
+     * @return
+     * @throws IOException
+     */
+    public JSONObject findByConditionPage(String tableName, String startRow, String stopRow,
+                                 String objKey, Integer currentPage, Integer pageSize) throws IOException {
+
+        ResultScanner scanner = null;
+        // 为分页创建的封装类对象，下面有给出具体属性
+        try {
+            // 计算起始页和结束页
+            Integer page = (currentPage - 1) * pageSize;
+            //Integer endPage = firstPage + pageSize;
+
+            // 从表池中取出HBASE表对象
+            Table table = connection.getTable(TableName.valueOf(tableName));
+            // 获取筛选对象
+            Scan scan = getScan(startRow, stopRow);
+
+            // 给筛选对象放入过滤器(true标识分页,具体方法在下面)
+            // scan.setFilter(packageFilters(true));
+            // ---------------添加过滤查询
+            // if (!StringUtils.isBlank(objKey)) {
+            // FilterList filterList = new FilterList();
+            // List<String> arr = new ArrayList<String>();
+            // arr.add("info,tag, " + objKey);
+            // for (String v : arr) { //
+            // String[] s = v.split(",");
+            // filterList.addFilter(new SingleColumnValueFilter(Bytes.toBytes(s[0]), Bytes.toBytes(s[1]), CompareOp.EQUAL, Bytes.toBytes(s[2])));
+            // scan.setFilter(filterList);
+            // }
+            // }
+            FilterList filterList = new FilterList();
+            if (!StringUtils.isBlank(objKey)) {// key最后的值=objKey
+                Filter filter = new RowFilter(CompareFilter.CompareOp.EQUAL, new RegexStringComparator(objKey));
+                filterList.addFilter(filter);
+            }
+            // ----------------添加过滤查询
+            // 缓存1000条数据
+            scan.setCaching(10000);
+            scan.setCacheBlocks(false);
+            filterList.addFilter(new PageFilter(pageSize));
+            // scan.setFilter(new PageFilter(pageSize));
+            // scan.setLimit(pageSize);
+//            scan.setMaxResultsPerColumnFamily(pageSize);
+//            scan.setRowOffsetPerColumnFamily(page);
+            scan.setFilter(filterList);
+            scan.setReversed(true);
+            Result r = null;
+            JSONObject json = new JSONObject();
+            JSONArray array = new JSONArray();
+            scanner = table.getScanner(scan);
+            byte[] lastRow = null;
+            while ((r = scanner.next()) != null) {
+                lastRow = r.getRow();
+                System.out.println(Bytes.toString(lastRow));
+                List<Cell> cells = r.listCells();
+                JSONObject record = new JSONObject();
+                for (int i = 0; i < cells.size(); i++) {
+                    if ("small_field".equals(Bytes.toString(CellUtil.cloneFamily(cells.get(i))))) {
+                        String key = Bytes.toString(CellUtil.cloneQualifier(cells.get(i)));
+                        String value = Bytes.toString(CellUtil.cloneValue(cells.get(i)));
+                        record.put(key, value);
+                    }
+                }
+                array.add(record);
+            }
+            json.put("last_row", Bytes.toString(lastRow));
+            json.put("data", array);
+            System.out.println(array.size());
+            return json;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (scanner != null) {
+                scanner.close();
+            }
+        }
+        return new JSONObject();
+    }
+
+    // 获取扫描器对象
+    private static Scan getScan(String startRow, String stopRow) {
+        Scan scan = new Scan();
+        scan.withStartRow(getBytes(startRow));
+        scan.withStopRow(getBytes(stopRow));
+        return scan;
+    }
+
+    /* 转换byte数组 */
+    public static byte[] getBytes(String str) {
+        if (str == null)
+            str = "";
+        return Bytes.toBytes(str);
+    }
+
+
 }

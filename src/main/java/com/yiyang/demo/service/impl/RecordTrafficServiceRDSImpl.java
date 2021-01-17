@@ -1,5 +1,6 @@
 package com.yiyang.demo.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.yiyang.demo.mapper.RecordTrafficMapper;
 import com.yiyang.demo.model.RecordTrafficDO;
 import com.yiyang.demo.service.RecordTrafficService;
@@ -18,5 +19,10 @@ public class RecordTrafficServiceRDSImpl implements RecordTrafficService {
     @Override
     public void save(RecordTrafficDO recordTrafficDO) {
         recordTrafficMapper.insert(recordTrafficDO);
+    }
+
+    @Override
+    public JSONObject findByConditionPage(String startRow, String stopRow, String objKey, Integer page, Integer size) {
+        return null;
     }
 }

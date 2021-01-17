@@ -20,7 +20,7 @@ public class RecordTrafficServiceHBASEImpl implements RecordTrafficService {
 
     private String tableName = "record_traffic";
 
-    private String[] smallField = {"name", "appId", "appName", "envId", "envName"};
+    private String[] smallField = {"id", "name", "appId", "appName", "envId", "envName", "createdAt", "updatedAt"};
     private String[] largeField = {"request", "response", "wrapperTraffic"};
 
 
@@ -44,7 +44,6 @@ public class RecordTrafficServiceHBASEImpl implements RecordTrafficService {
         for (String field : largeField) {
             largeValues.add(jsonObject.getString(field) == null ? "" : jsonObject.getString(field));
         }
-
         try {
             hBaseUtils.insertRecords(tableName, rowId, columnFamily[0], smallField, smallValues.toArray(new String[0]));
             hBaseUtils.insertRecords(tableName, rowId, columnFamily[1], largeField, largeValues.toArray(new String[0]));
@@ -52,5 +51,15 @@ public class RecordTrafficServiceHBASEImpl implements RecordTrafficService {
         } catch (IOException e) {
             logger.error("hbase添加数据失败： {}", e.getMessage());
         }
+    }
+
+    @Override
+    public JSONObject findByConditionPage(String startRow, String stopRow, String objKey, Integer page, Integer size) {
+        try {
+            return hBaseUtils.findByConditionPage(tableName, startRow, stopRow, objKey, page, size);
+        } catch (IOException e) {
+            logger.error("hbase分页查询失败： {}", e.getMessage());
+        }
+        return new JSONObject();
     }
 }

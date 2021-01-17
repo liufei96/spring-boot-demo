@@ -7,6 +7,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.UUID;
 
 @RestController
@@ -39,6 +40,13 @@ public class ProducerController {
     public String sendRecordTraffic(@PathVariable Integer count, @RequestBody RecordTrafficDO recordTrafficDO) {
         for (int i = 0; i < count ; i++) {
             recordTrafficDO.setName(UUID.randomUUID().toString());
+            recordTrafficDO.setCreatedAt(new Date());
+            recordTrafficDO.setUpdatedAt(new Date());
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+
+            }
             String traffic = JSONObject.toJSONString(recordTrafficDO);
             kafkaTemplate.send("yiyang", traffic); //使用kafka模板发送信息
         }

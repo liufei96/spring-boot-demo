@@ -24,7 +24,7 @@ public class ConsumerTask {
      *
      * @param record 变量代表消息本身，可以通过ConsumerRecord<?,?>类型的record变量来打印接收的消息的各种信息
      */
-    @KafkaListener(topics = "yiyang")
+    @KafkaListener(topics = "yiyang", groupId = "yiyang_group")
     public void listen(ConsumerRecord<?, ?> record) {
 //        System.out.printf("topic is %s, offset is %d, value is %s \n", record.topic(), record.offset(), record.value());
         RecordTrafficDO recordTrafficDO = JSONObject.parseObject(record.value().toString(), RecordTrafficDO.class);
