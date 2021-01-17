@@ -52,4 +52,9 @@ public class HBaseController {
                                     String objKey, Integer page, Integer size) {
         return recordTrafficService.findByConditionPage(startRow, stopRow, objKey, page, size);
     }
+
+    @GetMapping("/getTotal")
+    public long getTotal(String tableName) {
+        return hBaseUtils.getTotal(tableName);
+    }
 }

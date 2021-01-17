@@ -4,15 +4,15 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.Cell;
-import org.apache.hadoop.hbase.CellUtil;
-import org.apache.hadoop.hbase.NamespaceDescriptor;
-import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.client.coprocessor.AggregationClient;
+import org.apache.hadoop.hbase.client.coprocessor.LongColumnInterpreter;
 import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StopWatch;
 
 import java.io.IOException;
 import java.util.*;
@@ -28,6 +28,7 @@ public class HBaseUtils {
     private static ExecutorService pool = Executors.newScheduledThreadPool(20);    //设置连接池
     private static HBaseUtils instance = null;
     private static Admin admin = null;
+    private AggregationClient aggregationClient;
 
     /**
      * 建立连接
@@ -37,6 +38,7 @@ public class HBaseUtils {
     public HBaseUtils(Configuration config) {
         try {
             connection = ConnectionFactory.createConnection(config, pool);
+            aggregationClient = new AggregationClient(config);
             admin = connection.getAdmin();
         } catch (IOException e) {
             logger.error("建立连接HBase数据库失败", e);
@@ -287,7 +289,7 @@ public class HBaseUtils {
      * @throws IOException
      */
     public JSONObject findByConditionPage(String tableName, String startRow, String stopRow,
-                                 String objKey, Integer currentPage, Integer pageSize) throws IOException {
+                                          String objKey, Integer currentPage, Integer pageSize) throws IOException {
 
         ResultScanner scanner = null;
         // 为分页创建的封装类对象，下面有给出具体属性
@@ -376,6 +378,43 @@ public class HBaseUtils {
         if (str == null)
             str = "";
         return Bytes.toBytes(str);
+    }
+
+
+    /**
+     * 本地测试 3万多数据，耗时10几秒，太慢了
+     * @param tableName
+     * @return
+     */
+    public long getTotal(String tableName) {
+        try {
+            //提前创建connection和conf
+            Admin admin = connection.getAdmin();
+            TableName name = TableName.valueOf(tableName);
+            //先disable表，添加协处理器后再enable表
+            admin.disableTable(name);
+            TableDescriptor descriptor = admin.getDescriptor(name);
+            // HTableDescriptor descriptor = admin.getTableDescriptor(name);
+            String coprocessorClass = "org.apache.hadoop.hbase.coprocessor.AggregateImplementation";
+            if (!descriptor.hasCoprocessor(coprocessorClass)) {
+                descriptor.getCoprocessorDescriptors();
+            }
+            admin.modifyTable(descriptor);
+            admin.enableTable(name);
+            //计时
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+            Scan scan = new Scan();
+            scan.setFilter(new RowFilter(CompareOperator.EQUAL, new RegexStringComparator("10057722_1610879039140")));
+            long count = aggregationClient.rowCount(name, new LongColumnInterpreter(), scan);
+            System.out.println("RowCount: " + count);
+            stopWatch.stop();
+            System.out.println("统计耗时：" + stopWatch.getTotalTimeMillis());
+            return count;
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
 
