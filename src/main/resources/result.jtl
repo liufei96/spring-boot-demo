@@ -1,0 +1,2 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1609642383631,62,HTTP Request,200,,回放流量 1-1,text,true,,168,228,1,1,http://localhost:8080/yiyang/user,59,0,33
