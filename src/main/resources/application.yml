@@ -6,7 +6,7 @@ spring:
     password: 123456
 
   kafka:
-    bootstrap-servers: hadoop001:9092 #指定kafka server的地址，集群配多个，中间，逗号隔开
+    bootstrap-servers: hadoop003:9092 #指定kafka server的地址，集群配多个，中间，逗号隔开
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
