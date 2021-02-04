@@ -5,6 +5,7 @@ import org.apache.jmeter.util.JMeterUtils;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class JmeterTest2 {
 
@@ -15,7 +16,7 @@ public class JmeterTest2 {
      * @param args
      */
     public static void main(String[] args) {
-        //extracted();
+        extracted();
         System.out.println(isOSLinux());
     }
 
@@ -24,17 +25,14 @@ public class JmeterTest2 {
         JMeterUtils.setJMeterHome(jemterHome);
         JMeterUtils.loadJMeterProperties(JMeterUtils.getJMeterBinDir() + "/jmeter.properties");
         String jtl = jemterHome + "/result.jtl";
-        for (int i = 0; i < 10; i++) {
-            new Thread(() -> {
-                String csvPath = jemterHome + "/result-"+ UUID.randomUUID().toString() + ".csv";
-                String command = JMeterUtils.getJMeterBinDir() + "/JMeterPluginsCMD.bat --generate-csv " + csvPath + " --input-jtl " + jtl + "  --plugin-type AggregateReport ";
-                try {
-                    Runtime.getRuntime().exec(command);
-                    //Runtime.getRuntime().exec("bash " + command);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }).start();
+        String csvPath = jemterHome + "/result.csv";
+        String command = JMeterUtils.getJMeterBinDir() + "/JMeterPluginsCMD.bat --generate-csv " + csvPath + " --input-jtl " + jtl + "  --plugin-type AggregateReport ";
+        try {
+            Process exec = Runtime.getRuntime().exec(command);
+            exec.waitFor(10, TimeUnit.SECONDS);
+            //Runtime.getRuntime().exec("bash " + command);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
