@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -142,6 +143,7 @@ public class IElasticServiceImpl implements IElasticService {
             } else {
                 // 使用searchAfter循环
                 SearchHit last = searchHits[searchHits.length - 1];
+                System.out.println(Arrays.asList(last.getSortValues()));
                 sourceBuilder.searchAfter(last.getSortValues());
                 searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
                 searchHits = searchResponse.getHits().getHits();
