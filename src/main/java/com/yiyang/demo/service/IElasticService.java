@@ -6,6 +6,7 @@ import com.yiyang.demo.model.DocBean;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import java.io.IOException;
+import java.util.List;
 
 public interface IElasticService {
 
@@ -14,4 +15,9 @@ public interface IElasticService {
     PageInfo<JSONObject> search(SearchSourceBuilder searchSourceBuilder, int pageNum, int pageSize) throws Exception;
 
     PageInfo<JSONObject> searchAfter(SearchSourceBuilder searchSourceBuilder, int pageNum, int pageSize) throws Exception;
+
+    PageInfo<JSONObject> searchAfter(String query, String searchAfterId, int size) throws Exception;
+
+    void batchSave(List<DocBean> list) throws IOException;
+
 }
