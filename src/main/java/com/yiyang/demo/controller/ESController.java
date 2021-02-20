@@ -24,7 +24,7 @@ public class ESController {
         long begin = System.currentTimeMillis();
         int first = (page - 1) * size;
         for (int i = first; i < size + first; i++) {
-            DocBean docBean = new DocBean(i +1, "zs_" + UUID.randomUUID().toString().substring(0, 8), "first", "second", 1);
+            DocBean docBean = new DocBean(String.valueOf(i + 1), "zs_" + UUID.randomUUID().toString().substring(0, 8), "first", "second", 1);
             try {
                 iElasticService.save(docBean);
             } catch (IOException e) {
@@ -40,7 +40,7 @@ public class ESController {
         long begin = System.currentTimeMillis();
         List<DocBean> docBeanList = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            DocBean docBean = new DocBean(i +1, "batch_" + UUID.randomUUID().toString().substring(0, 8), "batch first", "batch second", 1);
+            DocBean docBean = new DocBean(String.valueOf(i +1), "batch_" + UUID.randomUUID().toString().substring(0, 8), "batch first", "batch second", 1);
             docBeanList.add(docBean);
         }
         try {

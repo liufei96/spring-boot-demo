@@ -7,7 +7,7 @@ import java.util.Date;
 @Data
 public class DocBean {
 
-    private Integer id;
+    private String id;
 
     private String firstCode;
 
@@ -21,7 +21,7 @@ public class DocBean {
 
     private Long startAt;
 
-    public DocBean(Integer id, String firstCode, String secondCode, String content, Integer type) {
+    public DocBean(String id, String firstCode, String secondCode, String content, Integer type) {
         this.id = id;
         this.firstCode = firstCode;
         this.secondCode = secondCode;
@@ -29,9 +29,5 @@ public class DocBean {
         this.type = type;
         this.createdAt = new Date();
         this.startAt = System.currentTimeMillis();
-    }
-
-    public DocBean() {
-
     }
 }

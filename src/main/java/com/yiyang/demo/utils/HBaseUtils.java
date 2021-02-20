@@ -103,6 +103,28 @@ public class HBaseUtils {
         }
     }
 
+    /***
+     * 批量添加
+     * @param tableName 表名
+     * @param datas 数据
+     */
+    public void batchSave(String tableName, List<Map<String, Map<String, String>>> datas) {
+        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
+            List<Put> puts = new ArrayList<>();
+            datas.stream().forEach(item -> {
+                item.entrySet().forEach(e -> e.getValue().entrySet().forEach(ee -> {
+                    Map<String, String> value = e.getValue();
+                    Put put = new Put(Bytes.toBytes(value.get("id")));
+                    put.addColumn(Bytes.toBytes(e.getKey()), Bytes.toBytes(ee.getKey()), Bytes.toBytes(ee.getValue()));
+                    puts.add(put);
+                }));
+            });
+            table.put(puts);
+        } catch (Exception e) {
+            logger.error("HBase数据库向表put数据失败", e);
+        }
+    }
+
     /**
      * 插入记录（单行单列族-多列多值）
      *
