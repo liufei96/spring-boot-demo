@@ -19,8 +19,8 @@ public class MyJob {
     @Resource
     private JobMetrics jobMetrics;
 
-    //@Async("main")
-    //@Scheduled(fixedDelay = 1000)
+    @Async("main")
+    @Scheduled(fixedDelay = 1000)
     public void doSomething() {
         count1++;
         jobMetrics.job1Counter.increment();
@@ -28,13 +28,13 @@ public class MyJob {
         System.out.println("task1 count:" + count1);
         if(count1%2==0){
             System.out.println("%5==0");
-            jobMetrics.map.put("x", Double.valueOf(1));
+            jobMetrics.map.put("y", Double.valueOf(1));
         }
 
     }
 
     @Async
-    //@Scheduled(fixedDelay = 10000)
+    @Scheduled(fixedDelay = 10000)
     public void doSomethingOther() {
         count2++;
         jobMetrics.job2Counter.increment();
