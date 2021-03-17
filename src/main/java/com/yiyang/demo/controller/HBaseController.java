@@ -58,7 +58,8 @@ public class HBaseController {
         List<Map<String, Map<String, String>>> mapList = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             String uuid = UUID.randomUUID().toString();
-            DocBean docBean = new DocBean(uuid, "zs_" + UUID.randomUUID().toString().substring(0, 8), "first", "second", 1);
+            String rowKey = Long.MAX_VALUE - System.currentTimeMillis() + "_" + uuid.substring(0,8);
+            DocBean docBean = new DocBean(rowKey, "zs_" + UUID.randomUUID().toString().substring(0, 8), "first", "second", 1);
             docBean.setCreatedAt(null);
             Map<String, String> mapString = new HashMap<>();
             Map<String, Object> map = JSONObject.parseObject(JSONObject.toJSONString(docBean), Map.class);

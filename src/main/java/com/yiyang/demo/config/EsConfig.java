@@ -38,12 +38,6 @@ public class EsConfig {
 
     @Bean(destroyMethod = "close")
     public RestHighLevelClient client() {
-        // 账号密码认证
-        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
-            final BasicCredentialsProvider basicCredentialsProvider = new BasicCredentialsProvider();
-            basicCredentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
-        }
-
         String[] endpointSplit = endpoints.split(",");
         HttpHost[] hosts = new HttpHost[endpointSplit.length];
         for (int i = 0; i < endpointSplit.length; i++) {
@@ -53,6 +47,12 @@ public class EsConfig {
             hosts[i] = new HttpHost(ip, port, HttpHost.DEFAULT_SCHEME_NAME);
         }
         RestClientBuilder builder = RestClient.builder(hosts);
+        // 账号密码认证
+        if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
+            final BasicCredentialsProvider basicCredentialsProvider = new BasicCredentialsProvider();
+            basicCredentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+            builder.setHttpClientConfigCallback(f -> f.setDefaultCredentialsProvider(basicCredentialsProvider));
+        }
         builder.setRequestConfigCallback(requestConfigBuilder -> {
             requestConfigBuilder.setConnectTimeout(30000);
             requestConfigBuilder.setSocketTimeout(30000);

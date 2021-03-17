@@ -26,11 +26,11 @@ public class ConsumerTask {
      */
     @KafkaListener(topics = "yiyang", groupId = "yiyang_group")
     public void listen(ConsumerRecord<?, ?> record) {
-//        System.out.printf("topic is %s, offset is %d, value is %s \n", record.topic(), record.offset(), record.value());
+        System.out.printf("topic is %s, offset is %d, value is %s \n", record.topic(), record.offset(), record.value());
         RecordTrafficDO recordTrafficDO = JSONObject.parseObject(record.value().toString(), RecordTrafficDO.class);
         // 保存数据库
         recordTrafficService.save(recordTrafficDO);
         // 保存hbase
-        recordTrafficServiceHbase.save(recordTrafficDO);
+        //recordTrafficServiceHbase.save(recordTrafficDO);
     }
 }

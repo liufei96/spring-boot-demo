@@ -25,4 +25,11 @@ public class RecordTrafficServiceRDSImpl implements RecordTrafficService {
     public JSONObject findByConditionPage(String startRow, String stopRow, String objKey, Integer page, Integer size) {
         return null;
     }
+
+    @Override
+    public int count() {
+        return recordTrafficMapper.count();
+    }
+
+
 }

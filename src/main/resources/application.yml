@@ -16,3 +16,14 @@ spring:
       auto-commit-interval: 1000
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  application:
+    name: demo
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+      base-path: /actuator
+  metrics:
+    tags:
+      application: ${spring.application.name}

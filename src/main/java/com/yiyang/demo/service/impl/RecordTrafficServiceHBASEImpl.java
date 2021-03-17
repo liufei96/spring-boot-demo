@@ -62,4 +62,9 @@ public class RecordTrafficServiceHBASEImpl implements RecordTrafficService {
         }
         return new JSONObject();
     }
+
+    @Override
+    public int count() {
+        return 0;
+    }
 }

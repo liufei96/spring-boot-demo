@@ -14,4 +14,6 @@ public interface RecordTrafficService {
 
     JSONObject findByConditionPage(String startRow, String stopRow,
                                    String objKey, Integer page, Integer size);
+
+    int count();
 }

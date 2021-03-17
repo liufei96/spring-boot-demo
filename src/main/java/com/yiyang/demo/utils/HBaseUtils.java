@@ -115,7 +115,7 @@ public class HBaseUtils {
                 item.entrySet().forEach(e -> e.getValue().entrySet().forEach(ee -> {
                     Map<String, String> value = e.getValue();
                     Put put = new Put(Bytes.toBytes(value.get("id")));
-                    put.addColumn(Bytes.toBytes(e.getKey()), Bytes.toBytes(ee.getKey()), Bytes.toBytes(ee.getValue()));
+                    put.addColumn(Bytes.toBytes("record_info"), Bytes.toBytes(ee.getKey()), Bytes.toBytes(ee.getValue()));
                     puts.add(put);
                 }));
             });
