@@ -54,6 +54,9 @@ public class TrafficMetrics implements MeterBinder {
 //        composite.add(simple); // <- 向CompositeMeterRegistry实例中添加SimpleMeterRegistry实例
         //compositeCounter.increment(); // <-计数成功
 
+        /**
+         * 对于，三种存储介质数据比较的来说，name值可以设置成一样的，job值设置成不一样的。这样，放到图上就会有三个
+         */
         SimpleMeterRegistry simpleMeterRegistry = new SimpleMeterRegistry();
         Metrics.addRegistry(simpleMeterRegistry);
         this.rdsTest = Metrics.counter("rds_test", "job", "test");
