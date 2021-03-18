@@ -41,5 +41,8 @@ public class TrafficMonitorTask {
         double avgSize = bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
         TrafficMetrics.avgSize.set(avgSize);
         System.out.println("rds的平均流量大小:" + trafficMetrics.avgSize.get());
+
+        trafficMetrics.rdsTest.increment(10);
+        System.out.println("rds测试:" + trafficMetrics.rdsTest.count());
     }
 }

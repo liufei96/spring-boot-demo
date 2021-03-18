@@ -4,7 +4,10 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.binder.MeterBinder;
+import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,6 +25,8 @@ public class TrafficMetrics implements MeterBinder {
 
     public static AtomicDouble avgSize = new AtomicDouble(0.00);
     public Gauge rdsAvgSize;
+
+    public Counter rdsTest;
 
     public Counter job1Counter;
     public Counter job2Counter;
@@ -41,6 +46,23 @@ public class TrafficMetrics implements MeterBinder {
         this.rdsAvgSize = Gauge.builder("rds_avg_size", avgSize, c -> avgSize.get())
                 .tags(new String[]{"name", "rds_avg_size"})
                 .description("rds_avg_size execute size").register(meterRegistry);
+
+        // 变化
+//        CompositeMeterRegistry composite = new CompositeMeterRegistry();
+//        this.rdsTest = composite.counter("rds_test");
+//        SimpleMeterRegistry simple = new SimpleMeterRegistry();
+//        composite.add(simple); // <- 向CompositeMeterRegistry实例中添加SimpleMeterRegistry实例
+        //compositeCounter.increment(); // <-计数成功
+
+        SimpleMeterRegistry simpleMeterRegistry = new SimpleMeterRegistry();
+        Metrics.addRegistry(simpleMeterRegistry);
+        this.rdsTest = Metrics.counter("rds_test", "job", "test");
+//        counter.increment();
+//
+//        this.rdsTest = Counter.builder("rds_test")
+//                .tags(new String[]{"name", "rds_test"})
+//                .description("rds_test execute count").register(meterRegistry);
+
 
         this.job1Counter = Counter.builder("size_lt_1_mb")
                 .tags(new String[]{"name", "size < 1mb"})
