@@ -1,6 +1,6 @@
 
 ## 启动命令
-java -jar AggregateReport-2.2.0-jar-with-dependencies.jar test.jtl 5
+java -jar -Xms8g -Xmx8g  -XX:+UseParNewGC -XX:+UseConcMarkSweepGC  AggregateReport-2.2.0-jar-with-dependencies.jar test.jtl 5
 
 ## 说明
 1. 5 是采样频率，单位s，建议设置成5s以上
